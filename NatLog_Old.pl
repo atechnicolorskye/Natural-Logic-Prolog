@@ -32,44 +32,31 @@ base_check(X,Y) :- independence(X,Y)
 % For Join Rules with union relations, they will be approximated to independence
 % Join Rules - Equivalence
 
-join_check(X,Z,equivalence) :- equivalence(X,Y),
-                    equivalence(Y,Z).
+join_check(equivalence,Z,equivalence).
 
-join_check(X,Z,forward_entailment) :- equivalence(X,Y),
-                           forward_entailment(Y,Z).
+join_check(equivalence,forward_entailment,forward_entailment).
 
-join_check(Z,X,forward_entailment) :- forward_entailment(Z,Y),
-                           equivalence(Y,X).
+join_check(forward_entailment,equivalence,forward_entailment).
 
-join_check(X,Z,reverse_entailment) :- equivalence(X,Y),
-                           reverse_entailment(Y,Z).
+join_check(equivalence,reverse_entailment,reverse_entailment).
 
-join_check(Z,X,reverse_entailment) :- reverse_entailment(Z,Y),
-                           equivalence(Y,X).
+join_check(reverse_entailment,equivalence,reverse_entailment).
 
-join_check(X,Z,negation) :- equivalence(X,Y),
-                           negation(Y,Z).
+join_check(equivalence,negation,negation).
 
-join_check(Z,X,negation) :- negation(Z,Y),
-                           equivalence(Y,X).
+join_check(negation,equivalence,negation).
 
-join_check(X,Z,alternation) :- equivalence(X,Y),
-                           alternation(Y,Z).
+join_check(equivalence,alternation,alternation).
 
-join_check(Z,X,alternation) :- alternation(Z,Y),
-                           equivalence(Y,X).
+join_check(alternation,equivalence,alternation).
 
-join_check(X,Z,cover) :- equivalence(X,Y),
-                           cover(Y,Z).
+join_check(equivalence,cover,cover).
 
-join_check(Z,X,cover) :- cover(Z,Y),
-                           equivalence(Y,X).
+join_check(cover,equivalence,cover).
 
-join_check(X,Z,independence) :- equivalence(X,Y),
-                           independence(Y,Z).
+join_check(equivalence,independence,independence).
 
-join_check(Z,X,independencejoin_check) :- independence(Z,Y),
-                           equivalence(Y,X).
+join_check(independence,equivalence,independence).
 
 % Join Rules - Forward Entailment
 forward_entailment(X,Z) :- forward_entailment(X,Y),
