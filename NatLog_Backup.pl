@@ -34,10 +34,6 @@ base_check(X,Y,independence) :- neg(base_check(X,Y,equivalence)),
                                 neg(base_check(X,Y,alternation)),
                                 neg(base_check(X,Y,cover)).
 
-% Join Rules
-join_check(equivalence,equivalence,equivalence).
-
-
 % Sentence Comparison
 compare_sentences([],[],_).
 compare_sentences([X|XTail],[X|YTail],Z) :- !,compare_sentences(XTail,YTail,Z).
@@ -54,27 +50,18 @@ compare_sentences([X|XTail],[Y|YTail],[Z|ZTail]) :- YTail == [],
                                                     base_check(X,Y,independence),
                                                     Z = X,
                                                     compare_sentences(XTail,[Y],ZTail),!,
-                                                    join_check(Z,ZTail,R),
-                                                    Z = R,
-                                                    ZTail = [].
+                                                    % join_check(Z,ZTail,R)
+                                                    % Z = R
+                                                    % ZTail = [].
 compare_sentences([X|XTail],[Y|YTail],[X|ZTail]) :- YTail == [],
                                                     base_check(X,Y,A),
                                                     Z = A,
-                                                    compare_sentences(XTail,[Y],ZTail),
-                                                    join_check(Z,ZTail,R),
-                                                    Z = R,
-                                                    ZTail = [].
+                                                    compare_sentences(XTail,[Y],ZTail).
 compare_sentences([X|XTail],[Y|YTail],[Z|ZTail]) :- base_check(X,Y,independence),
                                                     Z = X,
-                                                    compare_sentences(XTail,[Y,YTail],ZTail),
-                                                    join_check(Z,ZTail,R),
-                                                    Z = R,
-                                                    ZTail = [].
+                                                    compare_sentences(XTail,[Y,YTail],ZTail).
 compare_sentences([X|XTail],[Y|YTail],[Z|ZTail]) :- base_check(X,Y,A),
                                                     Z = A,
-                                                    compare_sentences(XTail,[Y,YTail],ZTail),!,
-                                                    join_check(Z,ZTail,R),
-                                                    Z = R,
-                                                    ZTail = [].
+                                                    compare_sentences(XTail,[Y,YTail],ZTail),!.
 
 
