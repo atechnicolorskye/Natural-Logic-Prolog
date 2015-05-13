@@ -65,6 +65,89 @@ join_check(independence,equivalence,independence).
 
 join_check(independence,independence,total).
 
+% Forward Entailment
+join_check(forward_entailment,forward_entailment,forward_entailment).
+
+join_check(reverse_entailment,forward_entailment,independence).
+
+join_check(forward_entailment,reverse_entailment,independence).
+
+join_check(negation,forward_entailment,cover).
+
+join_check(forward_entailment,negation,alternation).
+
+join_check(alternation,forward_entailment,independence).
+
+join_check(forward_entailment,alternation,alternation).
+
+join_check(cover,forward_entailment,cover).
+
+join_check(forward_entailment,cover,independence).
+
+join_check(independence,forward_entailment,independence).
+
+join_check(forward_entailment,independence,independence).
+
+% Reverse Entailment
+join_check(reverse_entailment,reverse_entailment,reverse_entailment).
+
+join_check(negation,reverse_entailment,alternation).
+
+join_check(reverse_entailment,negation,cover).
+
+join_check(alternation,reverse_entailment,alternation).
+
+join_check(reverse_entailment,alternation,independence).
+
+join_check(cover,reverse_entailment,independence).
+
+join_check(reverse_entailment,cover,independence).
+
+join_check(independence,reverse_entailment,independence).
+
+join_check(reverse_entailment,independence,independence).
+
+% Negation
+
+join_check(negation,negation,negation).
+
+join_check(alternation,negation,forward_entailment).
+
+join_check(negation,alternation,reverse_entailment).
+
+join_check(cover,negation,reverse_entailment).
+
+join_check(negation,cover,forward_entailment).
+
+join_check(independence,negation,independence).
+
+join_check(negation,independence,independence).
+
+% Alternation
+
+join_check(alternation,alternation,independence).
+
+join_check(cover,alternation,reverse_entailment).
+
+join_check(alternation,cover,forward_entailment).
+
+join_check(independence,alternation,independence).
+
+join_check(alternation,independence,independence).
+
+% Cover
+
+join_check(cover,cover,independence).
+
+join_check(independence,cover,independence).
+
+join_check(cover,independence,independence).
+
+% Independence
+
+join_check(independence,independence,total).
+
+
 % Sentence Comparison
 compare_sentences([],[],_,_).
 compare_sentences([X|XTail],[X|YTail],Z,R) :- !,compare_sentences(XTail,YTail,Z,R).

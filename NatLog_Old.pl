@@ -59,119 +59,83 @@ join_check(equivalence,independence,independence).
 join_check(independence,equivalence,independence).
 
 % Join Rules - Forward Entailment
-forward_entailment(X,Z) :- forward_entailment(X,Y),
-                           forward_entailment(Y,Z).
+join_check(forward_entailment,forward_entailment,forward_entailment).
 
-independence(X,Z) :- reverse_entailment(X,Y),
-                           forward_entailment(Y,Z).
+join_check(reverse_entailment,forward_entailment,independence).
 
-independence(Z,X) :- forward_entailment(Z,Y),
-                           reverse_entailment(Y,X).
+join_check(forward_entailment,reverse_entailment,independence).
 
-cover(X,Z) :- negation(X,Y),
-                           forward_entailment(Y,Z).
+join_check(negation,forward_entailment,cover).
 
-alternation(Z,X) :- forward_entailment(Z,Y),
-                           negation(Y,X).
+join_check(forward_entailment,negation,alternation).
 
-independence(X,Z) :- alternation(X,Y),
-                           forward_entailment(Y,Z).
+join_check(alternation,forward_entailment,independence).
 
-alternation(Z,X) :- forward_entailment(Z,Y),
-                           alternation(Y,X).
+join_check(forward_entailment,alternation,alternation).
 
-cover(X,Z) :- cover(X,Y),
-                           forward_entailment(Y,Z).
+join_check(cover,forward_entailment,cover).
 
-independence(Z,X) :- forward_entailment(Z,Y),
-                           cover(Y,X).
+join_check(forward_entailment,cover,independence).
 
-independence(X,Z) :- independence(X,Y),
-                           forward_entailment(Y,Z).
+join_check(independence,forward_entailment,independence).
 
-independence(Z,X) :- forward_entailment(Z,Y),
-                           independence(Y,X).
+join_check(forward_entailment,independence,independence).
 
 % Join Rules - Reverse Entailment
-reverse_entailment(X,Z) :- reverse_entailment(X,Y),
-                           reverse_entailment(Y,Z).
+join_check(reverse_entailment,reverse_entailment,reverse_entailment).
 
-alternation(X,Z) :- negation(X,Y),
-                           reverse_entailment(Y,Z).
+join_check(negation,reverse_entailment,alternation).
 
-cover(Z,X) :- reverse_entailment(Z,Y),
-                           negation(Y,X).
+join_check(reverse_entailment,negation,cover).
 
-alternation(X,Z) :- alternation(X,Y),
-                           reverse_entailment(Y,Z).
+join_check(alternation,reverse_entailment,alternation).
 
-independence(Z,X) :- reverse_entailment(Z,Y),
-                           alternation(Y,X).
+join_check(reverse_entailment,alternation,independence).
 
-independence(X,Z) :- cover(X,Y),
-                           reverse_entailment(Y,Z).
+join_check(cover,reverse_entailment,independence).
 
-cover(Z,X) :- reverse_entailment(Z,Y),
-                           cover(Y,X).
+join_check(reverse_entailment,cover,independence).
 
-independence(X,Z) :- independence(X,Y),
-                           reverser_entailment(Y,Z).
+join_check(independence,reverse_entailment,independence).
 
-independence(Z,X) :- reverser_entailment(Z,Y),
-                           independence(Y,X).
+join_check(reverse_entailment,independence,independence).
 
 % Join Rules - Negation
 
-negation(X,Z) :- negation(X,Y),
-                           negation(Y,Z).
+join_check(negation,negation,negation).
 
-forward_entailment(X,Z) :- alternation(X,Y),
-                           negation(Y,Z).
+join_check(alternation,negation,forward_entailment).
 
-reverse_entailment(Z,X) :- negation(Z,Y),
-                           alternation(Y,X).
+join_check(negation,alternation,reverse_entailment).
 
-reverse_entailment(X,Z) :- cover(X,Y),
-                           negation(Y,Z).
+join_check(cover,negation,reverse_entailment).
 
-forward_entailment(Z,X) :- negation(Z,Y),
-                           cover(Y,X).
+join_check(negation,cover,forward_entailment).
 
-independence(X,Z) :- independence(X,Y),
-                           negation(Y,Z).
+join_check(independence,negation,independence).
 
-independence(Z,X) :- negation(Z,Y),
-                           independence(Y,X).
+join_check(negation,independence,independence).
 
 % Join Rules - Alternation
 
-independence(X,Z) :- alternation(X,Y),
-                           alternation(Y,Z).
+join_check(alternation,alternation,independence).
 
-reverse_entailment(X,Z) :- cover(X,Y),
-                           alternation(Y,Z).
+join_check(cover,alternation,reverse_entailment).
 
-forward_entailment(Z,X) :- alternation(Z,Y),
-                           cover(Y,X).
+join_check(alternation,cover,forward_entailment).
 
-independence(X,Z) :- independence(X,Y),
-                           alternation(Y,Z).
+join_check(independence,alternation,independence).
 
-independence(Z,X) :- alternation(Z,Y),
-                           independence(Y,X).
+join_check(alternation,independence,independence).
 
 % Join Rules - Cover
 
-independence(X,Z) :- cover(X,Y),
-                           cover(Y,Z).
+join_check(cover,cover,independence).
 
-independence(X,Z) :- independence(X,Y),
-                           cover(Y,Z).
+join_check(independence,cover,independence).
 
-independence(Z,X) :- cover(Z,Y),
-                           independence(Y,X).
+join_check(cover,independence,independence).
 
 % Join Rules - Independence
 
-total(X,Z) :- independence(X,Y),
-                           independence(Y,Z).
+join_check(independence,independence,total).
