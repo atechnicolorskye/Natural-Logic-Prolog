@@ -16,10 +16,12 @@ negation(human,non-human).
 alternation(cat,dog).
 cover(animal,non-human).
 
-% Basic Rules
+% Utility Rules
 
 neg(Goal) :- Goal,!,fail.
 neg(Goal).
+
+% Basic Rules
 
 base_check(X,Y,equivalence) :- equivalence(X,Y); equivalence(Y,X).
 base_check(X,Y,forward_entailment) :- forward_entailment(X,Y); forward_entailment(Y,X).
@@ -179,13 +181,15 @@ compare_sentences([X|XTail],[Y|YTail],[X|ZTail],[R|RTail]) :- YTail == [],
                                                     join_check(Z,RHead,R).
 compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- base_check(X,Y,independence),
                                                     Z = independence,
-                                                    compare_sentences(XTail,[Y,YTail],ZTail,RTail),
+                                                    append([Y], YTail, YFull),
+                                                    compare_sentences(XTail,YFull,ZTail,RTail),
                                                     % nth0(0,ZTail,ZHead),
                                                     nth0(0,RTail,RHead),
                                                     join_check(Z,RHead,R).
 compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- base_check(X,Y,A),
                                                     Z = A,
-                                                    compare_sentences(XTail,[Y,YTail],ZTail,RTail),!,
+                                                    append([Y], YTail, YFull),
+                                                    compare_sentences(XTail,YFull,ZTail,RTail),!,
                                                     % nth0(0,ZTail,ZHead),
                                                     nth0(0,RTail,RHead),
                                                     join_check(Z,RHead,R).
