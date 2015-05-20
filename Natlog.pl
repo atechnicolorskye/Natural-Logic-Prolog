@@ -8,13 +8,22 @@
 %                                                 compare_sentences(XTail,[Y],Z).
 % compare_sentences([X|XTail],[Y|YTail],[X|Z]) :- compare_sentences(XTail,[Y,YTail],Z).
 
-% Equivalence Lists
+% Lists
 equivalence(escape,escaped).
 forward_entailment(crow,bird).
 reverse_entailment(european,french).
 negation(human,non-human).
 alternation(cat,dog).
 cover(animal,non-human).
+
+equivalence(X,X,0.5).
+forward_entailment(dance,move).
+% forward_entailment(jeans,pants).
+
+word(refused, alternation, 0.5).
+word(to, equivalence, 0.5).
+word(managed, equivalence, 5).
+word(X, equivalence, 0.5).
 
 % Utility Rules
 
@@ -23,18 +32,20 @@ neg(Goal).
 
 % Basic Rules
 
-base_check(X,Y,equivalence) :- equivalence(X,Y); equivalence(Y,X).
-base_check(X,Y,forward_entailment) :- forward_entailment(X,Y); forward_entailment(Y,X).
-base_check(X,Y,reverse_entailment) :- reverse_entailment(X,Y); reverse_entailment(Y,X).
-base_check(X,Y,negation) :- negation(X,Y); negation(Y,X).
-base_check(X,Y,alternation) :- alternation(X,Y); alternation(Y,X).
-base_check(X,Y,cover) :- cover(X,Y); cover(Y,X).
-base_check(X,Y,independence) :- neg(base_check(X,Y,equivalence)),
-                                neg(base_check(X,Y,forward_entailment)),
-                                neg(base_check(X,Y,reverse_entailment)),
-                                neg(base_check(X,Y,negation)),
-                                neg(base_check(X,Y,alternation)),
-                                neg(base_check(X,Y,cover)).
+base_check(X,Y,equivalence,P) :- equivalence(X,Y,P); equivalence(Y,X,P).
+base_check(X,Y,forward_entailment,P) :- forward_entailment(X,Y,P); reverse_entailment(Y,X,P).
+base_check(X,Y,reverse_entailment,P) :- reverse_entailment(X,Y,P); forward_entailment(Y,X,P).
+base_check(X,Y,negation,P) :- negation(X,Y,P); negation(Y,X,P).
+base_check(X,Y,alternation,P) :- alternation(X,Y,P); alternation(Y,X,P).
+base_check(X,Y,cover,P) :- cover(X,Y,P); cover(Y,X,P).
+base_check(X,Y,independence,P).
+
+%                            :- neg(base_check(X,Y,equivalence)),
+%                               neg(base_check(X,Y,forward_entailment)),
+%                               neg(base_check(X,Y,reverse_entailment)),
+%                               neg(base_check(X,Y,negation)),
+%                               neg(base_check(X,Y,alternation)),
+%                               neg(base_check(X,Y,cover)).
 
 % Join Rules
 
@@ -151,47 +162,191 @@ join_check(independence,independence,total).
 
 
 % Sentence Comparison
-compare_sentences([],[],_,_).
-compare_sentences([X|XTail],[X|YTail],Z,R) :- !,compare_sentences(XTail,YTail,Z,R).
-compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- XTail == [],
-                                                    base_check(X,Y,independence),
-                                                    ZTail = [],
-                                                    RTail = [],
-                                                    compare_sentences([],[],ZTail,RTail),!.
-compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- XTail == [],
-                                                    base_check(X,Y,A),
-                                                    Z = A,
-                                                    R = A,
-                                                    ZTail = [],
-                                                    RTail = [],
-                                                    compare_sentences([],[],ZTail,RTail),!.
-compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- YTail == [],
-                                                    base_check(X,Y,independence),
-                                                    Z = independence,
-                                                    compare_sentences(XTail,[Y],ZTail,RTail),!,
-                                                    % nth0(0,ZTail,ZHead),
-                                                    nth0(0,RTail,RHead),
-                                                    join_check(Z,RHead,R).
-compare_sentences([X|XTail],[Y|YTail],[X|ZTail],[R|RTail]) :- YTail == [],
-                                                    base_check(X,Y,A),
-                                                    Z = A,
-                                                    compare_sentences(XTail,[Y],ZTail,RTail),
-                                                    % nth0(0,ZTail,ZHead),
-                                                    nth0(0,RTail,RHead),
-                                                    join_check(Z,RHead,R).
-compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- base_check(X,Y,independence),
-                                                    Z = independence,
-                                                    append([Y], YTail, YFull),
-                                                    compare_sentences(XTail,YFull,ZTail,RTail),
-                                                    % nth0(0,ZTail,ZHead),
-                                                    nth0(0,RTail,RHead),
-                                                    join_check(Z,RHead,R).
-compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- base_check(X,Y,A),
-                                                    Z = A,
-                                                    append([Y], YTail, YFull),
-                                                    compare_sentences(XTail,YFull,ZTail,RTail),!,
-                                                    % nth0(0,ZTail,ZHead),
-                                                    nth0(0,RTail,RHead),
-                                                    join_check(Z,RHead,R).
+compare_sentences([],_,_,_,_,_).
+compare_sentences([X|XTail],[X|YTail],Z,R,Del,Ins) :- !,compare_sentences(XTail,YTail,Z,R,Del,Ins).
+compare_sentences([X|XTail],[Y|YTail],[Z],[R],[Del],[Ins]) :-
+                                            XTail == [],
+                                            YTail == [],
+                                            compare_word_sentence(X,[Y],Z_,Del_,Ins__,Sub_,Mat_),!,
+                                            (Z_ == []
+                                             -> word(X,Z,P)
+                                             ;  Z = Z_
+                                            ),
+                                            R = Z,
+                                            (Del_ == X
+                                             -> Del = Del_,
+                                                Ins = Ins__,
+                                                compare_sentences([],[],[Z_],[Z_],[Del_],[Ins__])
+                                             ;  Del = [],
+                                                subtract(Ins__,Sub_,Ins_),
+                                                subtract(Ins_,Sub_,Ins),
+                                                compare_sentences([],[],[Z_],[Z_],[],[Ins])
+                                            ).
+
+compare_sentences([X|XTail],[Y|YTail],[Z],[R],[Del],[Ins]) :-
+                                            XTail == [],
+                                            append([Y], YTail, YFull),
+                                            compare_word_sentence(X,YFull,Z_,Del_,Ins__,Sub_,Mat_),!,
+                                            (Del_ == X
+                                             -> Del = Del_,
+                                                Ins = [],
+                                                word(X,Z,P),
+                                                Z = R,
+                                                compare_sentences([],YTail,[Z],[R],[Del],[])
+                                             ;  Del = [],
+                                                subtract(Ins__,Sub_,Ins_),
+                                                subtract(Ins_,Sub_,Ins),
+                                                compare_insert(InsTail,Z___,R__),
+                                                nth0(0,R__,R_),!,
+                                                join_check(R_,Z_,R),
+                                                R = Z,
+                                                compare_sentences([],YTail,[Z],[R],[],[Ins])
+                                            ).
+
+compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail],[Del|DelTail],[Ins|InsTail]) :-
+                                            append([Y], YTail, YFull),
+                                            compare_word_sentence(X,YFull,Z_,Del_,Ins__,Sub_,Mat_),!,
+                                            (Del_ == X
+                                             -> Del = Del_, Ins = [],
+                                                compare_sentences(XTail,YFull,ZTail,RTail,DelTail,InsTail),
+                                                nth0(0,RTail,RHead),!,
+                                                word(X,Z,P),
+                                                join_check(Z,RHead,R)
+                                             ;  Del = [], Ins = Ins__,
+                                                subtract(YFull,Ins__,YTail___),
+                                                subtract(YTail___,Sub_,YTail__),
+                                                subtract(YTail__,Mat_,YTail_),
+                                                compare_sentences(XTail,YTail_,ZTail,RTail,DelTail,InsTail),
+                                                nth0(0,RTail,RHead),!,
+                                                compare_insert(Ins, Z__, Z_All),
+                                                nth0(0,Z_All,ZHead),!,
+                                                join_check(ZHead,Z_,Z),
+                                                join_check(Z,RHead,R)
+                                            ).
 
 
+compare_word_sentence(X,[],_,_,_,_,_).
+compare_word_sentence(X,[Y|YTail],Z,Del,Ins,Sub,Match) :-
+                                             YTail = [],
+                                             base_check(X,Y,A,P),!,
+                                             ( A == independence
+                                              -> Z = [], Del = X, Ins = Y
+                                              ; (A \= equivalence
+                                                -> Sub = Y, Match = []
+                                                ;  Sub = [], Match = Y
+                                                ),
+                                                Z = A, Del = [], Ins = []
+                                             ),
+                                             compare_word_sentence(X,[],Z,Del,Ins,Sub,Match).
+
+compare_word_sentence(X,[Y|YTail],Z,Del,[Ins|InsTail],[Sub|SubTail],[Match|MatchTail]) :-
+                                            base_check(X,Y,A),!,
+                                            ( A == independence
+                                             -> Ins = Y, Sub = [], Match = [], compare_word_sentence(X,YTail,Z,Del,InsTail,SubTail,MatchTail)
+                                             ; (A \= equivalence
+                                                -> Sub = Y, SubTail = [], Match = [], MatchTail =[]
+                                                ;  Sub = [], SubTail = [], Match = Y, MatchTail =[]
+                                                ),
+                                                Z = A, Del = [], Ins = [], InsTail = [], compare_word_sentence(X,[],Z,Del,InsTail,SubTail,MatchTail)
+                                            ).
+
+
+compare_insert([],equivalence,1).
+compare_insert([],_,_) :- compare_insert([],equivalence,1).
+compare_insert([Ins|InsTail],R,P) :-    word(Ins,Z,P_),
+                                        compare_insert(InsTail,RTail,PTail),!,
+                                        join_check(Z,RTail,R),
+                                        P is P_ * PTail.
+
+
+% Unused Rules
+
+% compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail],[Del|DelTail],[Ins|InsTail]) :-
+%                                             XTail == [],
+%                                             append([Y], YTail, YFull),
+%                                             compare_word_sentence(X,YFull,Z_,Del_,Ins_),
+%                                             Del_ = [],
+%                                             Del = Del_,
+%                                             Ins = Ins_,!,
+%                                             compare_insert(Ins,Z__,R_),
+%                                             nth0(0,R_,RHead),
+%                                             Z = RHead,
+%                                             R = RHead,
+%                                             compare_sentences([],_,Z,R,[],Ins).
+
+% compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail],[Del|DelTail],[Ins|InsTail]) :-
+%                                             append([Y], YTail, YFull),
+%                                             compare_word_sentence(X,YFull,Z,Del_,Ins_),
+%                                             Del_ = [],
+%                                             Del = Del_,
+%                                             Ins = Ins_,!,
+%                                             compare_sentences(XTail,YTail,ZTail,RTail,DelTail,InsTail),
+%                                             compare_insert(Ins,Z__,R_),
+%                                             nth0(0,RTail,RHead),
+%                                             join_check(R_,RHead,R).
+
+
+
+%
+% compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- XTail == [],
+%                                                     base_check(X,Y,independence),
+%                                                     ZTail = [],
+%                                                     RTail = [],
+%                                                     compare_sentences([],[],ZTail,RTail),!.
+% compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- XTail == [],
+%                                                     base_check(X,Y,A),
+%                                                     Z = A,
+%                                                     R = A,
+%                                                     ZTail = [],
+%                                                     RTail = [],
+%                                                     compare_sentences([],[],ZTail,RTail),!.
+% compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- YTail == [],
+%                                                     base_check(X,Y,independence),
+%                                                     Z = independence,
+%                                                     compare_sentences(XTail,[Y],ZTail,RTail),!,
+%                                                     % nth0(0,ZTail,ZHead),
+%                                                     nth0(0,RTail,RHead),
+%                                                     join_check(Z,RHead,R).
+% compare_sentences([X|XTail],[Y|YTail],[X|ZTail],[R|RTail]) :- YTail == [],
+%                                                     base_check(X,Y,A),
+%                                                     Z = A,
+%                                                     compare_sentences(XTail,[Y],ZTail,RTail),
+%                                                     % nth0(0,ZTail,ZHead),
+%                                                     nth0(0,RTail,RHead),
+%                                                     join_check(Z,RHead,R).
+% compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- base_check(X,Y,independence),
+%                                                     Z = independence,
+%                                                     append([Y], YTail, YFull),
+%                                                     compare_sentences(XTail,YFull,ZTail,RTail),
+%                                                     % nth0(0,ZTail,ZHead),
+%                                                     nth0(0,RTail,RHead),
+%                                                     join_check(Z,RHead,R).
+% compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail]) :- base_check(X,Y,A),
+%                                                     Z = A,
+%                                                     append([Y], YTail, YFull),
+%                                                     compare_sentences(XTail,YFull,ZTail,RTail),!,
+%                                                     % nth0(0,ZTail,ZHead),
+%                                                     nth0(0,RTail,RHead),
+%                                                     join_check(Z,RHead,R).
+
+% compare_word_sentence(X,[Y|YTail],Z,Del,InsTail) :-
+%                                              YTail = [],
+%                                              base_check(X,Y,A_),!,
+%                                              A \= independence,
+%                                              Z = A,
+%                                              Del = [],
+%                                              InsTail = [],
+%                                              compare_word_sentence(X,[],Z,Del,InsTail).
+
+% compare_word_sentence(X,[Y|YTail],Z,Del,[Ins|InsTail]) :-
+%                                             base_check(X,Y,independence),!,
+%                                             Ins = Y,
+%                                             compare_word_sentence(X,YTail,Z,Del,InsTail).
+
+% compare_insert([],[equivalence],[equivalence],1).
+% compare_insert([],_,_,_) :- compare_insert([],[equivalence],[equivalence],1).
+% compare_insert([Ins|InsTail],[Z|ZTail],[R|RTail],P) :- word(Ins,Z,P_),
+%                                                      compare_insert(InsTail,ZTail,RTail,PTail),!,
+%                                                      nth0(0,RTail,RHead),
+%                                                      join_check(Z,RHead,R),
+%                                                      P is P_ * PTail.
