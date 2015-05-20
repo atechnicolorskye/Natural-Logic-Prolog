@@ -9,16 +9,18 @@
 % compare_sentences([X|XTail],[Y|YTail],[X|Z]) :- compare_sentences(XTail,[Y,YTail],Z).
 
 % Lists
-equivalence(escape,escaped).
-forward_entailment(crow,bird).
-reverse_entailment(european,french).
-negation(human,non-human).
-alternation(cat,dog).
-cover(animal,non-human).
+equivalence(escape,escaped,0.5).
+forward_entailment(crow,bird,0.5).
+reverse_entailment(european,french,0.5).
+negation(human,non-human,0.5).
+alternation(cat,dog,0.5).
+cover(animal,non-human,0.5).
 
 equivalence(X,X,0.5).
-forward_entailment(dance,move).
-% forward_entailment(jeans,pants).
+
+
+forward_entailment(dance,move,0.5).
+% forward_entailment(jeans,pants,0.5).
 
 word(refused, alternation, 0.5).
 word(to, equivalence, 0.5).
@@ -38,7 +40,7 @@ base_check(X,Y,reverse_entailment,P) :- reverse_entailment(X,Y,P); forward_entai
 base_check(X,Y,negation,P) :- negation(X,Y,P); negation(Y,X,P).
 base_check(X,Y,alternation,P) :- alternation(X,Y,P); alternation(Y,X,P).
 base_check(X,Y,cover,P) :- cover(X,Y,P); cover(Y,X,P).
-base_check(X,Y,independence,P).
+base_check(X,Y,independence,0.5).
 
 %                            :- neg(base_check(X,Y,equivalence)),
 %                               neg(base_check(X,Y,forward_entailment)),
@@ -225,29 +227,34 @@ compare_sentences([X|XTail],[Y|YTail],[Z|ZTail],[R|RTail],[Del|DelTail],[Ins|Ins
                                             ).
 
 
-compare_word_sentence(X,[],_,_,_,_,_).
-compare_word_sentence(X,[Y|YTail],Z,Del,Ins,Sub,Match) :-
+compare_word_sentence(X,[],_,_,_,_,_,_).
+compare_word_sentence(X,[Y|YTail],Z,P,Del,Ins,Sub,Match) :-
                                              YTail = [],
                                              base_check(X,Y,A,P),!,
                                              ( A == independence
-                                              -> Z = [], Del = X, Ins = Y
+                                              -> Z = [], P = 0, Del = X, Ins = Y
                                               ; (A \= equivalence
                                                 -> Sub = Y, Match = []
                                                 ;  Sub = [], Match = Y
                                                 ),
-                                                Z = A, Del = [], Ins = []
+                                                Z = A, P = P, Del = [], Ins = []
                                              ),
                                              compare_word_sentence(X,[],Z,Del,Ins,Sub,Match).
 
-compare_word_sentence(X,[Y|YTail],Z,Del,[Ins|InsTail],[Sub|SubTail],[Match|MatchTail]) :-
-                                            base_check(X,Y,A),!,
+compare_word_sentence(X,[Y|YTail],Z,P,Del,Ins,Sub,Match) :-
+                                            base_check(X,Y,A,P_),!,
                                             ( A == independence
-                                             -> Ins = Y, Sub = [], Match = [], compare_word_sentence(X,YTail,Z,Del,InsTail,SubTail,MatchTail)
+                                             -> compare_word_sentence(X,YTail,Z,PTail,Del,Ins_,Sub_,Match_),
+                                                P is 1 * PTail,
+                                                append([Y],Ins_,Ins),
+                                                append([],Sub_,Sub),
+                                                append([],Match_,Match)
                                              ; (A \= equivalence
-                                                -> Sub = Y, SubTail = [], Match = [], MatchTail =[]
-                                                ;  Sub = [], SubTail = [], Match = Y, MatchTail =[]
+                                                -> Sub = [Y], Match = []
+                                                ;  Sub = [], Match = [Y]
                                                 ),
-                                                Z = A, Del = [], Ins = [], InsTail = [], compare_word_sentence(X,[],Z,Del,InsTail,SubTail,MatchTail)
+                                                Z = A, P is P_, PTail=1, Del = [], Ins = [],
+                                                compare_word_sentence(X,[],Z,PTail,Del,Ins,Sub,Match)
                                             ).
 
 
